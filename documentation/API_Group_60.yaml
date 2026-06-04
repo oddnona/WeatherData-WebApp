@@ -1,0 +1,604 @@
+openapi: 3.0.0
+info:
+  title: Weather API
+  description: API for managing and retrieving weather data.
+  version: "1.0.0"
+paths:
+  /weather:
+    get:
+      summary: Retrieve weather data
+      description: Retrieve all available weather data for a city identified by its name at a given hour.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the city.
+        - name: hour
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Specific hour (YYYY-MM-DDTHH:MM:SSZ).
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: Unique identifier for the weather record
+                    city:
+                      type: string
+                      description: Name of the city
+                    date_time:
+                      type: string
+                      format: date-time
+                      description: Timestamp of the weather record
+                    temperature:
+                      type: number
+                      format: float
+                      description: Temperature value
+                    precipitation:
+                      type: number
+                      format: float
+                      description: Precipitation amount
+                    rain:
+                      type: number
+                      format: float
+                      description: Rain amount
+                    snowfall:
+                      type: number
+                      format: float
+                      description: Snowfall amount
+
+            text/csv:
+              schema:
+                type: string
+                description: CSV formatted weather data with headers (id,city,date_time,temperature,precipitation,rain,snowfall)
+
+        "400":
+          description: Invalid parameters
+        "404":
+          description: City or hour not found
+        "500":
+          description: Server error
+    post:
+      summary: Create weather data
+      description: Create new weather data entry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+          text/csv:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Data created successfully
+        "400":
+          description: Invalid input
+        "500":
+          description: Server error
+    put:
+      summary: Update weather data
+      description: Update existing weather data for a city at a specific hour.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the city.
+        - name: hour
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Specific hour (YYYY-MM-DDTHH:MM:SSZ).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+          text/csv:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: Data updated successfully
+        "400":
+          description: Invalid input
+        "404":
+          description: City or hour not found
+        "500":
+          description: Server error
+    delete:
+      summary: Delete weather data
+      description: Delete weather data for a city at a specific hour.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the city.
+        - name: hour
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Specific hour (YYYY-MM-DDTHH:MM:SSZ).
+      responses:
+        "200":
+          description: Data deleted successfully
+        "404":
+          description: City or hour not found
+        "500":
+          description: Server error
+
+  /weather/update_by_city:
+    put:
+      summary: Update weather data for a specific city and time
+      description: Update existing weather data for a given city at a specific time.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the city.
+        - name: time
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Specific time in ISO format (YYYY-MM-DDTHH:MM:SS).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WeatherData'
+      responses:
+        "200":
+          description: Data updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherData'
+        "400":
+          description: Invalid input (e.g., missing parameters, invalid time format)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid time format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"
+        "404":
+          description: No weather data found for the specified city and time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No weather data found for London at 2024-01-15T12:00:00"
+
+  /weather/destroy_by_city:
+    delete:
+      summary: Delete weather data for a specific city and time
+      description: Delete weather data for a given city at a specific time.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the city.
+        - name: time
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+          description: Specific time in ISO format (YYYY-MM-DDTHH:MM:SS).
+      responses:
+        "204":
+          description: Data deleted successfully
+        "400":
+          description: Invalid input (e.g., missing parameters, invalid time format)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid time format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"
+        "404":
+          description: No weather data found for the specified city and time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "No weather data found for London at 2024-01-15T12:00:00"
+
+  /weather/hourly:
+    get:
+      summary: Retrieve hourly weather data for a city in a specific month and year
+      description: This endpoint retrieves hourly weather data for a city, filtered for a specific month and year. The data includes temperature, precipitation (rain and snow), and wind information. The data can be returned in either JSON or CSV format, with JSON being the default. The API will return all available hourly weather data for the specified city and time period.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The name of the city for which you want to retrieve weather data (e.g., "Burgas").
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: The specific month and year for which weather data is requested, in the format "YYYY-MM" (e.g., "2024-12").
+      responses:
+        "200":
+          description: Successful operation. Returns hourly weather data in either JSON or CSV format.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                    example: "Burgas"
+                  year_month:
+                    type: string
+                    format: date
+                    example: "2024-12"
+                  hourly_data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        timestamp:
+                          type: string
+                          format: date-time
+                          example: "2024-12-01T00:00:00Z"
+                        temperature:
+                          type: number
+                          format: float
+                          description: Temperature in degrees Celsius
+                          example: 5.4
+                        precipitation:
+                          type: number
+                          format: float
+                          description: Precipitation in millimeters (can include rain or snow)
+                          example: 0.0
+                        rain:
+                          type: number
+                          format: float
+                          description: Rainfall in millimeters
+                          example: 0.0
+                        snow:
+                          type: number
+                          format: float
+                          description: Snowfall in millimeters
+                          example: 0.0
+                        wind_speed:
+                          type: number
+                          format: float
+                          description: Wind speed in meters per second
+                          example: 3.2
+                        wind_direction:
+                          type: string
+                          description: Wind direction (e.g., "N", "NE", "E", etc.)
+                          example: "NE"
+            text/csv:
+              example: |
+                timestamp,temperature,precipitation,rain,snow,wind_speed,wind_direction
+                2024-12-01T00:00:00Z,5.4,0.0,0.0,0.0,3.2,NE
+                2024-12-01T01:00:00Z,4.8,0.0,0.0,0.0,3.0,NE
+                2024-12-01T02:00:00Z,4.3,0.0,0.0,0.0,2.8,N
+                2024-12-01T03:00:00Z,4.0,0.2,0.2,0.0,3.1,NW
+                2024-12-01T04:00:00Z,3.8,0.0,0.0,0.0,2.9,NW
+        "400":
+          description: Invalid parameters provided (e.g., invalid city name or month format).
+        "404":
+          description: No data found for the specified city and month.
+        "500":
+          description: Internal server error.
+
+  /weather/avg_temp:
+    get:
+      summary: Retrieve average temperature per month for a given city starting from a specific year
+      description: This endpoint retrieves the average temperature per month for a specified city, starting from a specific year. It returns either a JSON or CSV representation of the data, with JSON being the default. The endpoint calculates and returns the average temperature for each month starting from the given year.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The name of the city for which you want to retrieve the average temperature (e.g., "Burgas").
+        - name: startYear
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: The starting year for which you want to retrieve average temperature data (e.g., 2020).
+      responses:
+        "200":
+          description: Successful operation, returns average temperature data per month
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                    example: "Burgas"
+                  start_year:
+                    type: integer
+                    example: 2020
+                  average_temperatures:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        month:
+                          type: string
+                          example: "January"
+                        average_temperature:
+                          type: number
+                          format: float
+                          description: The average temperature for the month in degrees Celsius.
+                          example: 5.6
+            text/csv:
+              example: |
+                month,average_temperature
+                January,5.6
+                February,6.2
+                March,8.0
+                April,10.5
+                May,13.5
+                June,16.3
+                July,18.2
+                August,17.9
+                September,14.4
+                October,10.1
+                November,6.7
+                December,5.8
+        "400":
+          description: Invalid parameters provided (e.g., invalid city name or start year).
+        "404":
+          description: No data found for the specified city and start year.
+        "500":
+          description: Internal server error.
+
+  /weather/precipitation:
+    get:
+      summary: Retrieve total precipitation per day for a city and month
+      description: |
+        This endpoint retrieves the total precipitation per day for a given city and calendar month. The data is returned in batches of 10, 20, 50, or 100 days. You can specify the city and month (in YYYY-MM format), and the number of results per batch. The data can be returned in either JSON or CSV format, with JSON being the default.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          schema:
+            type: string
+          description: |
+            The name of the city for which you want to retrieve the total precipitation per day (e.g., "Groningen").
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: |
+            The specific month for which precipitation data is requested, in the format "YYYY-MM" (e.g., "2024-11").
+        - name: batchSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [ 10, 20, 50, 100 ]
+          description: |
+            The number of days to return per batch. Must be one of 10, 20, 50, or 100. If not specified, defaults to 10.
+      responses:
+        "200":
+          description: Successful operation, returns total precipitation per day data in batches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                    example: "Groningen"
+                  month:
+                    type: string
+                    example: "2024-11"
+                  total_precipitation_per_day:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                          example: "2024-11-01"
+                        total_precipitation:
+                          type: number
+                          format: float
+                          description: Total precipitation in millimeters for the day.
+                          example: 5.4
+            text/csv:
+              example: |
+                date,total_precipitation
+                2024-11-01,5.4
+                2024-11-02,3.1
+                2024-11-03,0.0
+                2024-11-04,2.3
+                2024-11-05,1.8
+                2024-11-06,4.2
+                2024-11-07,0.0
+                2024-11-08,7.6
+                2024-11-09,0.1
+                2024-11-10,0.0
+        "400":
+          description: Invalid parameters provided (e.g., invalid city name, month format, or batch size).
+        "404":
+          description: No data found for the specified city and month.
+        "500":
+          description: Internal server error.
+
+  /weather/extreme-temperatures:
+    get:
+      summary: Retrieve top or bottom N maximum observed temperatures across cities
+      description: |
+        This endpoint retrieves the top or bottom N maximum observed temperatures across all cities, either for a specific year or the previous M years. For each observed temperature, the specific city and hour where it was recorded are provided. The data is returned in either JSON or CSV format, with JSON as the default.
+      parameters:
+        - name: N
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: |
+            The number of top or bottom temperatures to retrieve. Must be a positive integer (N ≥ 1).
+        - name: year
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: |
+            The specific year (YYYY) for which the data is requested. If not specified, the `previousYears` parameter must be provided.
+        - name: previousYears
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: |
+            The number of years before the current year to retrieve the data from. The maximum number of years (M) can be specified here (M ≥ 1).
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [ top, bottom ]
+          description: |
+            The type of data to retrieve: either "top" (for the highest temperatures) or "bottom" (for the lowest temperatures).
+        - name: batchSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [ 10, 20, 50, 100 ]
+          description: |
+            The number of results to return per batch. Must be one of 10, 20, 50, or 100. Defaults to 10 if not specified.
+      responses:
+        "200":
+          description: Successful operation, returns the top or bottom N temperatures with associated city and hour information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  N:
+                    type: integer
+                    example: 10
+                  year_or_previous_years:
+                    type: string
+                    example: "2024"
+                  temperatures:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        temperature:
+                          type: number
+                          format: float
+                          description: Maximum observed temperature.
+                          example: 45.2
+                        city:
+                          type: string
+                          example: "Phoenix"
+                        hour:
+                          type: string
+                          format: date-time
+                          description: The hour when the temperature was observed.
+                          example: "2024-07-15T14:00:00Z"
+            text/csv:
+              example: |
+                temperature,city,hour
+                45.2,Phoenix,2024-07-15T14:00:00Z
+                44.8,Dallas,2024-07-15T15:00:00Z
+                43.5,Las Vegas,2024-07-15T13:00:00Z
+                42.1,Los Angeles,2024-07-15T16:00:00Z
+                40.9,Austin,2024-07-15T12:00:00Z
+                40.5,San Antonio,2024-07-15T17:00:00Z
+                40.0,Denver,2024-07-15T14:30:00Z
+                39.8,Chicago,2024-07-15T15:15:00Z
+                39.2,New York,2024-07-15T13:45:00Z
+                38.7,Boston,2024-07-15T14:20:00Z
+        "400":
+          description: Invalid parameters provided (e.g., invalid N, year, type, or batchSize).
+        "404":
+          description: No data found for the specified query.
+        "500":
+          description: Internal server error.
+
+components:
+  schemas:
+    WeatherData:
+      type: object
+      properties:
+        city: { type: string }
+        timestamp: { type: string, format: date-time }
+        temperature: { type: number }
+        precipitation: { type: number }
+
+    TemperatureData:
+      type: object
+      properties:
+        city: { type: string }
+        timestamp: { type: string, format: date-time }
+        temperature: { type: number }
+        hour: { type: string, format: date-time }
+
+    PrecipitationData:
+      type: object
+      properties:
+        city: { type: string }
+        timestamp: { type: string, format: date-time }
+        precipitation: { type: number }
+
+    MaxTemperatureData:
+      type: object
+      properties:
+        city: { type: string }
+        timestamp: { type: string, format: date-time }
+        temperature: { type: number }
+        hour: { type: string, format: date-time }
