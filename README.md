@@ -55,5 +55,3 @@ This Web application leverages the "Forbes Top 100 Cities Weather Data (2020-YTD
 Once the container is running, access the application:
 http://localhost:3000/
 
-Additionally, you can test it without the frontend at: 
-http://127.0.0.1:8000/api/swagger/schema/
