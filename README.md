@@ -1,25 +1,6 @@
 # Weather Data Web Application
 
-This project is a Web application built as part of the Web Engineering course. It leverages the "Forbes Top 100 Cities Weather Data (2020-YTD)" dataset to provide both basic and advanced weather data functionalities through a RESTful API and a user-friendly front-end interface.
-
----
-
-## Table of Contents
-
-1. [Project Description](#project-description)  
-2. [Features](#features)  
-3. [Technologies Used](#technologies-used)  
-4. [Getting Started](#getting-started)  
-5. [API Endpoints](#api-endpoints)  
-6. [Front-End Functionality](#front-end-functionality)  
-7. [Deployment Instructions](#deployment-instructions)  
-8. [Contributors](#contributors)  
-
----
-
-## Project Description
-
-The project processes the weather data from 2020 to 2024 and offers a variety of features to interact with and analyze the dataset. The dataset is cleaned and optimized for use in the application, adhering to project requirements.
+This Web application leverages the "Forbes Top 100 Cities Weather Data (2020-YTD)" dataset to provide both basic and advanced weather data functionalities through a RESTful API and a user-friendly front-end interface.
 
 ---
 
@@ -50,9 +31,6 @@ The project processes the weather data from 2020 to 2024 and offers a variety of
 - **Containerization**: Docker, Docker Compose
 
 ---
-
-## Getting Started
-
 ### Prerequisites
 - Docker and Docker Compose installed on your system.
 - (Optional) Python 3.10+ and Node.js for local development.
